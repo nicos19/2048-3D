@@ -17,9 +17,10 @@ public class Cell : MonoBehaviour
 
     /// <value> 
     /// Property <c>Tile</c> represents the tile contained by the cell.
-    /// Empty cell is represented by <c>0</c>, actual tiles by <c>2</c>, <c>4</c>, <c>8</c>, ... or <c>2048</c>.
+    /// Empty list means that cell does not contain any tile. 
+    /// List of length two means that this two tiles will merge at this cell.
     /// </value>
-    public int Tile { get; private set; }
+    public List<GameObject> Tile { get; set; }
 
     /// <value>
     /// Property <c>Color</c> represents the background color of the cell (and shall depend on <c>Tile</c> property).
@@ -47,28 +48,35 @@ public class Cell : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /*Debug.Log(transform.rotation.eulerAngles.z + "  "  + newRotation.z);
-
-        newRotation = new Vector3(0, 0, 360);
-        if (doRotate && Mathf.Abs(transform.rotation.eulerAngles.z - newRotation.z) > 2)
-        {
-            transform.Rotate(new Vector3(0, 0, Time.deltaTime * rotationSpeed));
-        }
-        else if (doRotate)
-        {
-            transform.Rotate(new Vector3(0, 0, Mathf.Abs(transform.rotation.eulerAngles.z - newRotation.z)));
-            doRotate = false;
-        }*/
+        
     }
 
     /// <summary>
-    /// This methods sets the <c>Tile</c> property of the cell. 
-    /// Therefore a tile is assigned to the cell or the cell is marked as empty.
+    /// This methods assigns <c>tileGameObject</c> to <c>Tile</c>.
     /// </summary>
     /// <param name="tileValue"></param>
-    public void AssignTileToCell(int tileValue)
+    public void AssignTileToCell(GameObject tileGameObject)
     {
-        Tile = tileValue;
+        Tile.Add(tileGameObject);
+    }
+
+    /// <summary>
+    /// This method returns the tile game object in this cell.
+    /// </summary>
+    /// <returns></returns>
+    public GameObject GetTileGameObject()
+    {
+        // returns always first object in "Tile" since "Tile" has more than one element only temporarly
+        return Tile[0];
+    }
+
+    /// <summary>
+    /// This method returns the value of the tile the cell contains.
+    /// </summary>
+    /// <returns></returns>
+    public int GetTileValue()
+    {
+        return Tile[0].GetComponent<Tile>().TileValue;
     }
 
     /// <summary>
@@ -79,12 +87,13 @@ public class Cell : MonoBehaviour
         
     }
 
+    /*
     /// <summary>
     /// This method sets property <c>Color</c> so that it fits with property <c>Tile</c>.
     /// </summary>
     public void UpdateColor()
     {
-        switch (Tile)
+        switch (Tile[0].TileValue)
         {
             case 0:
                 Color = Color.white;
@@ -123,7 +132,7 @@ public class Cell : MonoBehaviour
                 Color = new Color(255, 0, 0);
                 break;
         }
-    }
+    }*/
 
     /// <summary>
     /// This methods sets the property <c>HasMergedTile</c> to <c>true</c>. It is called after two tiles merged.

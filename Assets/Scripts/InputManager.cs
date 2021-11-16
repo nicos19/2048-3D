@@ -4,18 +4,20 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
-    public GameManager GameManager { get; set; }
+    private GameManager GAME_MANAGER;
+    private MovementManager MOVEMENT_MANAGER;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        GAME_MANAGER = gameObject.GetComponent<GameManager>();
+        MOVEMENT_MANAGER = gameObject.GetComponent<MovementManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown("esc"))
+        if (Input.GetKeyDown("escape"))
         {
             // open pause menu
             // TODO
@@ -23,23 +25,23 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown("up"))
         {
-            GameManager.Shift(Direction.Up);
-            GameManager.NextTurn();
+            MOVEMENT_MANAGER.CommandShiftTiles(Direction.Up);
+            GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("right"))
         {
-            GameManager.Shift(Direction.Right);
-            GameManager.NextTurn();
+            MOVEMENT_MANAGER.CommandShiftTiles(Direction.Right);
+            GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("down"))
         {
-            GameManager.Shift(Direction.Down);
-            GameManager.NextTurn();
+            MOVEMENT_MANAGER.CommandShiftTiles(Direction.Down);
+            GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("left"))
         {
-            GameManager.Shift(Direction.Left);
-            GameManager.NextTurn();
+            MOVEMENT_MANAGER.CommandShiftTiles(Direction.Left);
+            GAME_MANAGER.NextTurn();
         }
     }
 

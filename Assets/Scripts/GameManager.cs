@@ -5,13 +5,33 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public GameObject PlayFieldGameObject;
+    public GameObject TilePrefab;
+    public const int FieldSize = 4;
 
-    private const int FieldSize = 4;
+    /// <value>
+    /// Property <c>PlayField</c> represents the current state of the play field.
+    /// </value>
+    public Cell[,] PlayField { get; set; }
+
+    /// <value>
+    /// Property <c>Tiles</c> is a list with all tiles on the play field.
+    /// </value>
+    public List<GameObject> Tiles { get; set; }
+
+    /// <value>
+    /// Property <c>CountUnfinishedMoves</c> represents the number of tile moves that are still executed right now.
+    /// </value>
+    public static int CountUnfinishedTileMoves { get; set; }
+
+    /// <value>
+    /// Property <c>MoveMadeThisRound</c> is set <c>true</c> when a player input results in an actual action on the play field.
+    /// </value>
+    public bool MoveMadeThisRound { get; set; }
+
     private bool _isGameStopped;
-    private Cell[,] _playField;
     private List<Cell> _allCells;
     private int _score;
-    private bool _moveMadeThisRound;
+    private bool _waitForUnfinishedTileMoves;
     private SceneDrawer sceneDrawer;
 
 
@@ -25,7 +45,12 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (_waitForUnfinishedTileMoves && CountUnfinishedTileMoves == 0)
+        {
+            // GameManager was waiting for tile moves to be finished & all moves are finished now
+            _waitForUnfinishedTileMoves = false;
+            NextTurn();
+        } 
     }
 
 
@@ -35,10 +60,11 @@ public class GameManager : MonoBehaviour
     public void CreateNewGame()
     {
         _isGameStopped = false;
-        _moveMadeThisRound = false;
         _score = 0;
+        MoveMadeThisRound = false;
+        CountUnfinishedTileMoves = 0;
 
-        _playField = new Cell[FieldSize, FieldSize];
+        PlayField = new Cell[FieldSize, FieldSize];
         _allCells = new List<Cell>();
 
         // get cell instances from "PlayFieldGameObject"
@@ -49,12 +75,12 @@ public class GameManager : MonoBehaviour
 
         int i = 0;  // counts through "_allCells"
         // create play field with empty cells
-        for (int x = 0; x < FieldSize; x++)
+        for (int y = 0; y < FieldSize; y++)
         {
-            for (int y = 0; y < FieldSize; y++)
+            for (int x = 0; x < FieldSize; x++)
             {
-                _playField[y, x] = _allCells[i];
-                _playField[y, x].AssignTileToCell(0);
+                PlayField[y, x] = _allCells[i];
+                PlayField[y, x].Tile = new List<GameObject>();
                 i++;
             }
         }
@@ -62,13 +88,11 @@ public class GameManager : MonoBehaviour
         // create two initial tiles
         CreateTile();
         CreateTile();
-
-        sceneDrawer.InitializeSceneDrawer(FieldSize);
-        sceneDrawer.UpdateSceneDrawer();
-        sceneDrawer.DrawScene(_playField, FieldSize);
     }
 
-    // creates a random tile with value of 2 (90%) or 4 (10%) in an empty cell
+    /// <summary>
+    /// This method creates a random tile with value of <c>2</c> (90%) or <c>4</c> (10%) in an empty cell.
+    /// </summary>
     public void CreateTile()
     {
         System.Random randomGenerator = new System.Random();
@@ -76,7 +100,7 @@ public class GameManager : MonoBehaviour
 
         int tilePosX = randomGenerator.Next(0, 4);
         int tilePosY = randomGenerator.Next(0, 4);
-        while (_playField[tilePosY, tilePosX].Tile != 0)
+        while (PlayField[tilePosY, tilePosX].Tile.Count != 0)
         {
             // cell (tilePosX, tilePosY) is not empty -> try again
             tilePosX = randomGenerator.Next(0, 4);
@@ -91,138 +115,35 @@ public class GameManager : MonoBehaviour
         {
             tileValue = 2;
         }
-        _playField[tilePosY, tilePosX].AssignTileToCell(tileValue);
-        _playField[tilePosY, tilePosX].UpdateColor();
+
+        Vector3 newTileWorldPosition = new Vector3(PlayField[tilePosY, tilePosX].gameObject.transform.position.x, 
+                                                   TilePrefab.transform.position.y,
+                                                   PlayField[tilePosY, tilePosX].gameObject.transform.position.z);
+        // create new tile game object
+        GameObject newTile = Instantiate(TilePrefab, newTileWorldPosition, TilePrefab.transform.rotation);
+        newTile.GetComponent<Tile>().AssignTileValue(tileValue);
+        newTile.GetComponent<Tile>().UpdateMaterial();
+        newTile.GetComponent<Tile>().CurrentCell = PlayField[tilePosY, tilePosX];
+        newTile.GetComponent<Tile>().TargetCell = PlayField[tilePosY, tilePosX];
+
+        PlayField[tilePosY, tilePosX].AssignTileToCell(newTile);
     }
+
+    /// <summary>
+    /// This method increases the score by <c>addedScore</c>.
+    /// </summary>
+    /// <param name="addedScore"></param>
+    public void IncreaseScore(int addedScore)
+    {
+        _score += addedScore;
+    }
+
 
 
 
     
 
-
-
-
-    /// <summary>
-    /// This method executes a shift of all tiles in <c>direction</c> depending by player input.
-    /// </summary>
-    /// <param name="direction"></param>
-    public void Shift(Direction direction)
-    {
-        switch (direction)
-        {
-            case Direction.Up:
-                for (int x = 0; x < FieldSize; x++)
-                {
-                    for (int y = 0; y < FieldSize; y++)
-                    {
-                        MoveTile(_playField[y, x], direction);
-                    }
-                }
-                break;
-            case Direction.Right:
-                for (int x = FieldSize - 1; x >= 0; x--)
-                {
-                    for (int y = 0; y < FieldSize; y++)
-                    {
-                        MoveTile(_playField[y, x], direction);
-                    }
-                }
-                break;
-            case Direction.Down:
-                for (int x = 0; x < FieldSize; x++)
-                {
-                    for (int y = FieldSize - 1; y >= 0; y--)
-                    {
-                        MoveTile(_playField[y, x], direction);
-                    }
-                }
-                break;
-            case Direction.Left:
-                for (int x = 0; x < FieldSize; x++)
-                {
-                    for (int y = 0; y < FieldSize; y++)
-                    {
-                        MoveTile(_playField[y, x], direction);
-                    }
-                }
-                break;
-        }
-    }
-
-    /// <summary>
-    /// This method moves tile at <c>cell</c> in <c>direction</c> as far as possible.
-    /// There is no action if <c>cell</c> does not contain a tile.
-    /// </summary>
-    /// <param name="cell"></param>
-    /// <param name="direction"></param>
-    public void MoveTile(Cell cell, Direction direction)
-    {
-        if (cell.Tile == 0)
-        {
-            // no tile in this cell
-            return;
-        }
-
-        Cell neighborCell;
-        switch (direction)
-        {
-            case Direction.Up:
-                if (cell.Y == 0)
-                {
-                    // tile cannot move farther
-                    return;
-                }
-                neighborCell = _playField[cell.Y - 1, cell.X];
-                break;
-            case Direction.Right:
-                if (cell.X == FieldSize - 1)
-                {
-                    // tile cannot move farther
-                    return;
-                }
-                neighborCell = _playField[cell.Y, cell.X + 1];
-                break;
-            case Direction.Down:
-                if (cell.Y == FieldSize - 1)
-                {
-                    // tile cannot move farther
-                    return;
-                }
-                neighborCell = _playField[cell.Y + 1, cell.X];
-                break;
-            default:  // case: LEFT
-                if (cell.X == 0)
-                {
-                    // tile cannot move farther
-                    return;
-                }
-                neighborCell = _playField[cell.Y, cell.X - 1];
-                break;
-        }
-
-        if (neighborCell.Tile == 0)
-        {
-            // nieghbor cell is empty -> move there and try to move in "direction" again
-            neighborCell.AssignTileToCell(cell.Tile);
-            neighborCell.UpdateColor();
-            cell.AssignTileToCell(0);
-            cell.UpdateColor();
-            MoveTile(neighborCell, direction);
-            _moveMadeThisRound = true;
-        }
-        else if (neighborCell.Tile == cell.Tile && !neighborCell.HasMergedTile)
-        {
-            // neighbor cell contains tile with same value as tile in "cell" -> merge both tiles
-            // no merge if tile in neighbor cell is result of former merge during current round
-            neighborCell.AssignTileToCell(2 * neighborCell.Tile);
-            neighborCell.UpdateColor();
-            neighborCell.TileMerged();
-            cell.AssignTileToCell(0);
-            cell.UpdateColor();
-            _moveMadeThisRound = true;
-            _score += neighborCell.Tile;
-        }
-    }
+    
 
     /// <summary>
     /// This method initializes the next round of the game. 
@@ -230,6 +151,13 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void NextTurn()
     {
+        if (CountUnfinishedTileMoves != 0)
+        {
+            // there are still tile moves that are being executed right now -> wait until all moves are done
+            _waitForUnfinishedTileMoves = true;
+            return;
+        }
+
         if (!AnyMoveMade())
         {
             // last user input did not cause any move or merge of any tile -> do not go to next round
@@ -241,12 +169,11 @@ public class GameManager : MonoBehaviour
         {
             for (int y = 0; y < FieldSize; y++)
             {
-                _playField[y, x].ResetHasMergedTile();
-                if (_playField[y, x].Tile == 2048)
+                PlayField[y, x].ResetHasMergedTile();
+                if (PlayField[y, x].Tile.Count != 0 && PlayField[y, x].GetTileValue() == 2048)
                 {
                     // player has a 2048 tile -> game is won
                     _isGameStopped = true;
-                    sceneDrawer.DrawScene(_playField, FieldSize);
                     sceneDrawer.ShowWinMessage();
                     return;
                 }
@@ -254,9 +181,8 @@ public class GameManager : MonoBehaviour
         }
 
         // next round begins -> new tile appears on the play field
-        _moveMadeThisRound = false;
+        MoveMadeThisRound = false;
         CreateTile();
-        sceneDrawer.DrawScene(_playField, FieldSize);
 
         // check if any shift is possible
         if (!AnyShiftPossible())
@@ -278,12 +204,12 @@ public class GameManager : MonoBehaviour
         {
             for (int y = 0; y < FieldSize; y++)
             {
-                if (_playField[y, x].Tile == 0)
+                if (PlayField[y, x].Tile.Count == 0)
                 {
                     // play field has an empty tile -> there is a possible shift action
                     return true;
                 }
-                if (TileHasEqualNeighbor(_playField[y, x]))
+                if (TileHasEqualNeighbor(PlayField[y, x]))
                 {
                     // there are two neighbored tiles with same value -> there is a possible shift (merge) action
                     return true;
@@ -301,7 +227,7 @@ public class GameManager : MonoBehaviour
     /// </returns>
     public bool AnyMoveMade()
     {
-        return _moveMadeThisRound;
+        return MoveMadeThisRound;
     }
 
     /// <summary>
@@ -315,7 +241,7 @@ public class GameManager : MonoBehaviour
         // neighbor above
         if (cell.Y > 0)
         {
-            neighbor = _playField[cell.Y - 1, cell.X];
+            neighbor = PlayField[cell.Y - 1, cell.X];
             if (cell.Tile == neighbor.Tile)
             {
                 return true;
@@ -324,7 +250,7 @@ public class GameManager : MonoBehaviour
         // neighbor beneath
         if (cell.Y < FieldSize - 1)
         {
-            neighbor = _playField[cell.Y + 1, cell.X];
+            neighbor = PlayField[cell.Y + 1, cell.X];
             if (cell.Tile == neighbor.Tile)
             {
                 return true;
@@ -333,7 +259,7 @@ public class GameManager : MonoBehaviour
         // neighbor leftward
         if (cell.X > 0)
         {
-            neighbor = _playField[cell.Y, cell.X - 1];
+            neighbor = PlayField[cell.Y, cell.X - 1];
             if (cell.Tile == neighbor.Tile)
             {
                 return true;
@@ -342,7 +268,7 @@ public class GameManager : MonoBehaviour
         // neighbor rightward
         if (cell.X < FieldSize - 1)
         {
-            neighbor = _playField[cell.Y, cell.X + 1];
+            neighbor = PlayField[cell.Y, cell.X + 1];
             if (cell.Tile == neighbor.Tile)
             {
                 return true;

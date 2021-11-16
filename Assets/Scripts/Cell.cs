@@ -31,12 +31,34 @@ public class Cell : MonoBehaviour
     /// </value>
     public bool HasMergedTile { get; private set; }
 
+    private float rotationSpeed;
+    private bool doRotate = true;
+    private Vector3 newRotation;
+
 
     // Start is called before the first frame update
     void Start()
     {
         Color = Color.white;
         HasMergedTile = false;
+        rotationSpeed = 200f;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        /*Debug.Log(transform.rotation.eulerAngles.z + "  "  + newRotation.z);
+
+        newRotation = new Vector3(0, 0, 360);
+        if (doRotate && Mathf.Abs(transform.rotation.eulerAngles.z - newRotation.z) > 2)
+        {
+            transform.Rotate(new Vector3(0, 0, Time.deltaTime * rotationSpeed));
+        }
+        else if (doRotate)
+        {
+            transform.Rotate(new Vector3(0, 0, Mathf.Abs(transform.rotation.eulerAngles.z - newRotation.z)));
+            doRotate = false;
+        }*/
     }
 
     /// <summary>
@@ -54,19 +76,7 @@ public class Cell : MonoBehaviour
     /// </summary>
     public void DrawCell()
     {
-        // TODO
-
-        /*
-        if (Tile == 0)
-        {
-            // cell is empty
-            game.setCellValueEx(X, Y, Color, "");
-            return;
-        }
-
-        Integer tileInteger = new Integer(Tile);
-        game.setCellValueEx(X, Y, Color, tileInteger.toString(), UnityEngine.Color.BLACK);
-        */
+        
     }
 
     /// <summary>

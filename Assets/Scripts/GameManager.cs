@@ -12,11 +12,13 @@ public class GameManager : MonoBehaviour
     private List<Cell> _allCells;
     private int _score;
     private bool _moveMadeThisRound;
+    private SceneDrawer sceneDrawer;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        sceneDrawer = gameObject.GetComponent<SceneDrawer>();
         CreateNewGame();
     }
 
@@ -46,14 +48,12 @@ public class GameManager : MonoBehaviour
         }
 
         int i = 0;  // counts through "_allCells"
-        Cell nextCell;
         // create play field with empty cells
         for (int x = 0; x < FieldSize; x++)
         {
             for (int y = 0; y < FieldSize; y++)
             {
-                nextCell =  _allCells[i];
-                _playField[y, x] = nextCell;
+                _playField[y, x] = _allCells[i];
                 _playField[y, x].AssignTileToCell(0);
                 i++;
             }
@@ -63,21 +63,9 @@ public class GameManager : MonoBehaviour
         CreateTile();
         CreateTile();
 
-        DrawScene();
-    }
-
-    /// <summary>
-    /// This methods updates the visual representation of the play field.
-    /// </summary>    
-    public void DrawScene()
-    {
-        for (int x = 0; x < FieldSize; x++)
-        {
-            for (int y = 0; y < FieldSize; y++)
-            {
-                _playField[y, x].DrawCell();
-            }
-        }
+        sceneDrawer.InitializeSceneDrawer(FieldSize);
+        sceneDrawer.UpdateSceneDrawer();
+        sceneDrawer.DrawScene(_playField, FieldSize);
     }
 
     // creates a random tile with value of 2 (90%) or 4 (10%) in an empty cell
@@ -106,6 +94,13 @@ public class GameManager : MonoBehaviour
         _playField[tilePosY, tilePosX].AssignTileToCell(tileValue);
         _playField[tilePosY, tilePosX].UpdateColor();
     }
+
+
+
+    
+
+
+
 
     /// <summary>
     /// This method executes a shift of all tiles in <c>direction</c> depending by player input.
@@ -251,8 +246,8 @@ public class GameManager : MonoBehaviour
                 {
                     // player has a 2048 tile -> game is won
                     _isGameStopped = true;
-                    DrawScene();
-                    ShowWinMessage();
+                    sceneDrawer.DrawScene(_playField, FieldSize);
+                    sceneDrawer.ShowWinMessage();
                     return;
                 }
             }
@@ -261,14 +256,14 @@ public class GameManager : MonoBehaviour
         // next round begins -> new tile appears on the play field
         _moveMadeThisRound = false;
         CreateTile();
-        DrawScene();
+        sceneDrawer.DrawScene(_playField, FieldSize);
 
         // check if any shift is possible
         if (!AnyShiftPossible())
         {
             // player cannot do any shift action -> game over
             _isGameStopped = true;
-            ShowGameOverMessage();
+            sceneDrawer.ShowGameOverMessage();
         }
 
     }
@@ -358,20 +353,6 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// This method causes the game to show a "You win!" message.
-    /// </summary>
-    public void ShowWinMessage()
-    {
-        // TODO
-    }
-
-    /// <summary>
-    /// This method causes the game to show a "Game over!" message.
-    /// </summary>
-    public void ShowGameOverMessage()
-    {
-        // TODO
-    }
+    
 
 }

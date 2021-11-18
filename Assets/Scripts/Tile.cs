@@ -53,6 +53,11 @@ public class Tile : MonoBehaviour
     public void UpdateMaterial()
     {
         gameObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>($"Materials/TileMaterial{TileValue}");
+        // also update height and y-position of tile game object -> higher "TileValue" causes larger tile size
+        float newHeight = (float)(0.1 + Mathf.Log(TileValue, 2) * 0.05);
+        float newPositionY = (float)(transform.position.y + (newHeight - transform.localScale.y) * 0.5);
+        transform.localScale = new Vector3(transform.localScale.x, newHeight, transform.localScale.z);
+        transform.position = new Vector3(transform.position.x, newPositionY, transform.position.z);
     }
 
     /// <summary>

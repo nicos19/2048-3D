@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public GameObject PlayFieldGameObject;
+    public GameObject TilesGameObject;
     public GameObject TilePrefab;
     public const int FieldSize = 4;
 
@@ -28,17 +29,18 @@ public class GameManager : MonoBehaviour
     /// </value>
     public bool MoveMadeThisRound { get; set; }
 
-    private bool _isGameStopped;
+    private bool _gamePaused;
     private List<Cell> _allCells;
     private int _score;
+    private int _bestScore;
     private bool _waitForUnfinishedTileMoves;
-    private SceneDrawer sceneDrawer;
+    private InterfaceManager INTERFACE_MANAGER;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        sceneDrawer = gameObject.GetComponent<SceneDrawer>();
+        INTERFACE_MANAGER = gameObject.GetComponent<InterfaceManager>();
         CreateNewGame();
     }
 
@@ -59,7 +61,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void CreateNewGame()
     {
-        _isGameStopped = false;
+        _gamePaused = false;
         _score = 0;
         MoveMadeThisRound = false;
         CountUnfinishedTileMoves = 0;
@@ -136,15 +138,13 @@ public class GameManager : MonoBehaviour
     public void IncreaseScore(int addedScore)
     {
         _score += addedScore;
+        if (_score > _bestScore)
+        {
+            // new high score
+            _bestScore = _score;
+        }
     }
-
-
-
-
     
-
-    
-
     /// <summary>
     /// This method initializes the next round of the game. 
     /// It checks for win/game over and creates one new random tile if the game continues.
@@ -164,6 +164,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // update displayed score
+        INTERFACE_MANAGER.UpdateScoreboard(_score, _bestScore);
+
         // check winning condition
         for (int x = 0; x < FieldSize; x++)
         {
@@ -173,8 +176,8 @@ public class GameManager : MonoBehaviour
                 if (PlayField[y, x].Tile.Count != 0 && PlayField[y, x].GetTileValue() == 2048)
                 {
                     // player has a 2048 tile -> game is won
-                    _isGameStopped = true;
-                    sceneDrawer.ShowWinMessage();
+                    _gamePaused = true;
+                    INTERFACE_MANAGER.ShowWinMessage();
                     return;
                 }
             }
@@ -188,10 +191,9 @@ public class GameManager : MonoBehaviour
         if (!AnyShiftPossible())
         {
             // player cannot do any shift action -> game over
-            _isGameStopped = true;
-            sceneDrawer.ShowGameOverMessage();
+            _gamePaused = true;
+            INTERFACE_MANAGER.ShowGameOverMessage();
         }
-
     }
 
     /// <summary>

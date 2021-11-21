@@ -17,29 +17,33 @@ public class InputManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown("escape"))
+        if (GAME_MANAGER.GamePaused || !GAME_MANAGER.ReadyForUserInput)
         {
-            // open pause menu
-            // TODO
+            // game is paused or not ready for next user input -> no action possible
+            return;
         }
 
         if (Input.GetKeyDown("up"))
         {
+            GAME_MANAGER.ReadyForUserInput = false;
             MOVEMENT_MANAGER.CommandShiftTiles(Direction.Up);
             GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("right"))
         {
+            GAME_MANAGER.ReadyForUserInput = false;
             MOVEMENT_MANAGER.CommandShiftTiles(Direction.Right);
             GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("down"))
         {
+            GAME_MANAGER.ReadyForUserInput = false;
             MOVEMENT_MANAGER.CommandShiftTiles(Direction.Down);
             GAME_MANAGER.NextTurn();
         }
         else if (Input.GetKeyDown("left"))
         {
+            GAME_MANAGER.ReadyForUserInput = false;
             MOVEMENT_MANAGER.CommandShiftTiles(Direction.Left);
             GAME_MANAGER.NextTurn();
         }

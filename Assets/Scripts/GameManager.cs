@@ -29,18 +29,29 @@ public class GameManager : MonoBehaviour
     /// </value>
     public bool MoveMadeThisRound { get; set; }
 
-    private bool _gamePaused;
+    /// <value>
+    /// Property <c>GamePaused</c> is <c>true</c> if game is paused due to open menu or game over.
+    /// </value>
+    public bool GamePaused { get; set; }
+
+    /// <value>
+    /// Property <c>ReadyForUserInput</c> is <c>true</c> if game is ready to receive next input by user.
+    /// </value>
+    public bool ReadyForUserInput { get; set; }
+
     private List<Cell> _allCells;
     private int _score;
     private int _bestScore;
     private bool _waitForUnfinishedTileMoves;
     private InterfaceManager INTERFACE_MANAGER;
+    private AudioManager AUDIO_MANAGER;
 
 
     // Start is called before the first frame update
     void Start()
     {
         INTERFACE_MANAGER = gameObject.GetComponent<InterfaceManager>();
+        AUDIO_MANAGER = gameObject.GetComponent<AudioManager>();
         CreateNewGame();
     }
 
@@ -61,7 +72,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void CreateNewGame()
     {
-        _gamePaused = false;
+        GamePaused = false;
+        AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         _score = 0;
         MoveMadeThisRound = false;
         CountUnfinishedTileMoves = 0;
@@ -90,6 +102,8 @@ public class GameManager : MonoBehaviour
         // create two initial tiles
         CreateTile();
         CreateTile();
+
+        ReadyForUserInput = true;
     }
 
     /// <summary>
@@ -123,10 +137,12 @@ public class GameManager : MonoBehaviour
                                                    PlayField[tilePosY, tilePosX].gameObject.transform.position.z);
         // create new tile game object
         GameObject newTile = Instantiate(TilePrefab, newTileWorldPosition, TilePrefab.transform.rotation);
+        newTile.transform.SetParent(TilesGameObject.transform, true);
         newTile.GetComponent<Tile>().AssignTileValue(tileValue);
         newTile.GetComponent<Tile>().UpdateMaterial();
         newTile.GetComponent<Tile>().CurrentCell = PlayField[tilePosY, tilePosX];
         newTile.GetComponent<Tile>().TargetCell = PlayField[tilePosY, tilePosX];
+        newTile.GetComponent<Tile>().AUDIO_MANAGER = AUDIO_MANAGER;
 
         PlayField[tilePosY, tilePosX].AssignTileToCell(newTile);
     }
@@ -161,6 +177,7 @@ public class GameManager : MonoBehaviour
         if (!AnyMoveMade())
         {
             // last user input did not cause any move or merge of any tile -> do not go to next round
+            ReadyForUserInput = true;
             return;
         }
 
@@ -176,7 +193,7 @@ public class GameManager : MonoBehaviour
                 if (PlayField[y, x].Tile.Count != 0 && PlayField[y, x].GetTileValue() == 2048)
                 {
                     // player has a 2048 tile -> game is won
-                    _gamePaused = true;
+                    GamePaused = true;
                     INTERFACE_MANAGER.ShowWinMessage();
                     return;
                 }
@@ -184,6 +201,7 @@ public class GameManager : MonoBehaviour
         }
 
         // next round begins -> new tile appears on the play field
+        AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         MoveMadeThisRound = false;
         CreateTile();
 
@@ -191,9 +209,11 @@ public class GameManager : MonoBehaviour
         if (!AnyShiftPossible())
         {
             // player cannot do any shift action -> game over
-            _gamePaused = true;
+            GamePaused = true;
             INTERFACE_MANAGER.ShowGameOverMessage();
         }
+
+        ReadyForUserInput = true;
     }
 
     /// <summary>
@@ -239,12 +259,18 @@ public class GameManager : MonoBehaviour
     /// <returns>Returns <c>true</c> if a neighbored tile with same value is found, <c>false</c> otherwise.</returns>
     public bool TileHasEqualNeighbor(Cell cell)
     {
+        if (cell.Tile.Count == 0)
+        {
+            // cell has no tile
+            return false;
+        }
+
         Cell neighbor;
         // neighbor above
         if (cell.Y > 0)
         {
             neighbor = PlayField[cell.Y - 1, cell.X];
-            if (cell.Tile == neighbor.Tile)
+            if (neighbor.Tile.Count != 0 && cell.Tile[0].GetComponent<Tile>().TileValue == neighbor.Tile[0].GetComponent<Tile>().TileValue)
             {
                 return true;
             }
@@ -253,7 +279,7 @@ public class GameManager : MonoBehaviour
         if (cell.Y < FieldSize - 1)
         {
             neighbor = PlayField[cell.Y + 1, cell.X];
-            if (cell.Tile == neighbor.Tile)
+            if (neighbor.Tile.Count != 0 && cell.Tile[0].GetComponent<Tile>().TileValue == neighbor.Tile[0].GetComponent<Tile>().TileValue)
             {
                 return true;
             }
@@ -262,7 +288,7 @@ public class GameManager : MonoBehaviour
         if (cell.X > 0)
         {
             neighbor = PlayField[cell.Y, cell.X - 1];
-            if (cell.Tile == neighbor.Tile)
+            if (neighbor.Tile.Count != 0 && cell.Tile[0].GetComponent<Tile>().TileValue == neighbor.Tile[0].GetComponent<Tile>().TileValue)
             {
                 return true;
             }
@@ -271,7 +297,7 @@ public class GameManager : MonoBehaviour
         if (cell.X < FieldSize - 1)
         {
             neighbor = PlayField[cell.Y, cell.X + 1];
-            if (cell.Tile == neighbor.Tile)
+            if (neighbor.Tile.Count != 0 && cell.Tile[0].GetComponent<Tile>().TileValue == neighbor.Tile[0].GetComponent<Tile>().TileValue)
             {
                 return true;
             }

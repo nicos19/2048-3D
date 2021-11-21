@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public AudioManager AUDIO_MANAGER;  // is set by GameManager when tile is created
+
     /// <value>
     /// Property <c>TileValue</c> represents the number associated with the tile.
     /// </value>
@@ -27,7 +29,7 @@ public class Tile : MonoBehaviour
 
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         // shall this tile be moved?
         if (_doMove)
@@ -79,6 +81,7 @@ public class Tile : MonoBehaviour
     /// </summary>
     public void MoveTile()
     {
+        AUDIO_MANAGER.PlayShiftSoundEffect();
         gameObject.transform.position += _moveDirectionVector3 * _moveSpeed * Time.deltaTime;
 
         if (IsTileBeyondTarget())
@@ -90,8 +93,8 @@ public class Tile : MonoBehaviour
             // tile finished its move to target cell
             CurrentCell = TargetCell;
             _doMove = false;
-            CheckForMerge();
             GameManager.CountUnfinishedTileMoves -= 1;
+            CheckForMerge();
         }
     }
 
@@ -138,19 +141,19 @@ public class Tile : MonoBehaviour
         }
     }
 
-    /// <returns>Returns <c>true</c> if shifted tile moved too far.</returns>
+    /// <returns>Returns <c>true</c> if shifted tile moved too far or exactly at target position.</returns>
     public bool IsTileBeyondTarget()
     {
         switch (_moveDirection)
         {
             case Direction.Up:
-                return gameObject.transform.position.z < TargetCell.gameObject.transform.position.z;
+                return gameObject.transform.position.z <= TargetCell.gameObject.transform.position.z;
             case Direction.Right:
-                return gameObject.transform.position.x < TargetCell.gameObject.transform.position.x;
+                return gameObject.transform.position.x <= TargetCell.gameObject.transform.position.x;
             case Direction.Down:
-                return gameObject.transform.position.z > TargetCell.gameObject.transform.position.z;
+                return gameObject.transform.position.z >= TargetCell.gameObject.transform.position.z;
             default:  // case: Left
-                return gameObject.transform.position.x > TargetCell.gameObject.transform.position.x;
+                return gameObject.transform.position.x >= TargetCell.gameObject.transform.position.x;
         }
     }
 

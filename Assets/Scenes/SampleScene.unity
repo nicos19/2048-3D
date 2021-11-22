@@ -1550,6 +1550,7 @@ GameObject:
   - component: {fileID: 485562721}
   - component: {fileID: 485562722}
   - component: {fileID: 485562723}
+  - component: {fileID: 485562724}
   m_Layer: 0
   m_Name: Game Logic
   m_TagString: Untagged
@@ -1645,6 +1646,18 @@ MonoBehaviour:
   SoundEffectsButton: {fileID: 206694036}
   SoundOn: {fileID: 21300000, guid: eb5f925e52ba2a944bd469303df8903a, type: 3}
   SoundOff: {fileID: 21300000, guid: 644f30dc26091c6489f584af7bf11555, type: 3}
+--- !u!114 &485562724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485562717}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d72fbdeaca3c25458b4f60481f144dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &652714260
 GameObject:
   m_ObjectHideFlags: 0
@@ -2470,7 +2483,7 @@ TextMesh:
   m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   m_Color:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278255615
 --- !u!23 &815035376
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4653,7 +4666,7 @@ TextMesh:
   m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   m_Color:
     serializedVersion: 2
-    rgba: 4278255615
+    rgba: 4294967295
 --- !u!23 &1630212522
 MeshRenderer:
   m_ObjectHideFlags: 0

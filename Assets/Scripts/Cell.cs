@@ -32,17 +32,12 @@ public class Cell : MonoBehaviour
     /// </value>
     public bool HasMergedTile { get; private set; }
 
-    private float rotationSpeed;
-    private bool doRotate = true;
-    private Vector3 newRotation;
-
 
     // Start is called before the first frame update
     void Start()
     {
         Color = Color.white;
         HasMergedTile = false;
-        rotationSpeed = 200f;
     }
 
     // Update is called once per frame

@@ -15,11 +15,6 @@ public class GameManager : MonoBehaviour
     public Cell[,] PlayField { get; set; }
 
     /// <value>
-    /// Property <c>Tiles</c> is a list with all tiles on the play field.
-    /// </value>
-    public List<GameObject> Tiles { get; set; }
-
-    /// <value>
     /// Property <c>CountUnfinishedMoves</c> represents the number of tile moves that are still executed right now.
     /// </value>
     public static int CountUnfinishedTileMoves { get; set; }
@@ -45,6 +40,7 @@ public class GameManager : MonoBehaviour
     private bool _waitForUnfinishedTileMoves;
     private InterfaceManager INTERFACE_MANAGER;
     private AudioManager AUDIO_MANAGER;
+    private SavegameManager SAVEGAME_MANAGER;
 
 
     // Start is called before the first frame update
@@ -52,7 +48,18 @@ public class GameManager : MonoBehaviour
     {
         INTERFACE_MANAGER = gameObject.GetComponent<InterfaceManager>();
         AUDIO_MANAGER = gameObject.GetComponent<AudioManager>();
-        CreateNewGame();
+        SAVEGAME_MANAGER = gameObject.GetComponent<SavegameManager>();
+
+        // load game if savegame exists
+        if (SAVEGAME_MANAGER.SavegameExists())
+        {
+            RestoreLoadedGame(SAVEGAME_MANAGER.LoadSavegame());
+        }
+        else
+        {
+            // no savegame found -> start new game
+            StartNewGame();
+        }
     }
 
     // Update is called once per frame
@@ -66,15 +73,15 @@ public class GameManager : MonoBehaviour
         } 
     }
 
-
     /// <summary>
-    /// resets the game state to start a new game
+    /// This method resets the game to initial state without any tiles.
     /// </summary>
-    public void CreateNewGame()
+    public void ResetGame()
     {
         GamePaused = false;
         AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         _score = 0;
+        INTERFACE_MANAGER.UpdateScoreboard(_score, _bestScore);
         MoveMadeThisRound = false;
         CountUnfinishedTileMoves = 0;
 
@@ -99,17 +106,70 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // destroy all tiles of old game
+        DestroyAllTiles();
+    }
+
+    /// <summary>
+    /// This method resets the game state to initial state and starts a new game.
+    /// </summary>
+    public void StartNewGame()
+    {
+        ResetGame();
+
         // create two initial tiles
-        CreateTile();
-        CreateTile();
+        CreateRandomTile();
+        CreateRandomTile();
 
         ReadyForUserInput = true;
     }
 
     /// <summary>
+    /// This method restores the game state that fits <c>savegame</c>.
+    /// </summary>
+    /// <param name="savegame"></param>
+    /// <param name="score"></param>
+    public void RestoreLoadedGame(Savegame savegame)
+    {
+        ResetGame();
+
+        _score = savegame.Score;
+        foreach (SavegameTile savegameTile in savegame.SavegameTiles)
+        {
+            CreateTile(savegameTile.CellX, savegameTile.CellY, savegameTile.TileValue);
+        }
+
+        ReadyForUserInput = true;
+    }
+
+    /// <summary>
+    /// This method creates a tile at cell <c>(tilePosX, tilePosY)</c> with value <c>tileValue</c>.
+    /// </summary>
+    /// <param name="tilePosX"></param>
+    /// <param name="tilePosY"></param>
+    /// <param name="tileValue"></param>
+    public void CreateTile(int tilePosX, int tilePosY, int tileValue)
+    {
+        Vector3 newTileWorldPosition = new Vector3(PlayField[tilePosY, tilePosX].gameObject.transform.position.x,
+                                                   TilePrefab.transform.position.y,
+                                                   PlayField[tilePosY, tilePosX].gameObject.transform.position.z);
+        // create new tile game object
+        GameObject newTile = Instantiate(TilePrefab, newTileWorldPosition, TilePrefab.transform.rotation);
+        newTile.transform.SetParent(TilesGameObject.transform, true);
+        newTile.GetComponent<Tile>().AssignTileValue(tileValue);
+        newTile.GetComponent<Tile>().UpdateMaterial();
+        newTile.GetComponent<Tile>().CurrentCell = PlayField[tilePosY, tilePosX];
+        newTile.GetComponent<Tile>().TargetCell = PlayField[tilePosY, tilePosX];
+        newTile.GetComponent<Tile>().AUDIO_MANAGER = AUDIO_MANAGER;
+
+        // assign tile to its current cell
+        PlayField[tilePosY, tilePosX].AssignTileToCell(newTile);
+    }
+
+    /// <summary>
     /// This method creates a random tile with value of <c>2</c> (90%) or <c>4</c> (10%) in an empty cell.
     /// </summary>
-    public void CreateTile()
+    public void CreateRandomTile()
     {
         System.Random randomGenerator = new System.Random();
 
@@ -132,19 +192,18 @@ public class GameManager : MonoBehaviour
             tileValue = 2;
         }
 
-        Vector3 newTileWorldPosition = new Vector3(PlayField[tilePosY, tilePosX].gameObject.transform.position.x, 
-                                                   TilePrefab.transform.position.y,
-                                                   PlayField[tilePosY, tilePosX].gameObject.transform.position.z);
-        // create new tile game object
-        GameObject newTile = Instantiate(TilePrefab, newTileWorldPosition, TilePrefab.transform.rotation);
-        newTile.transform.SetParent(TilesGameObject.transform, true);
-        newTile.GetComponent<Tile>().AssignTileValue(tileValue);
-        newTile.GetComponent<Tile>().UpdateMaterial();
-        newTile.GetComponent<Tile>().CurrentCell = PlayField[tilePosY, tilePosX];
-        newTile.GetComponent<Tile>().TargetCell = PlayField[tilePosY, tilePosX];
-        newTile.GetComponent<Tile>().AUDIO_MANAGER = AUDIO_MANAGER;
+        CreateTile(tilePosX, tilePosY, tileValue);
+    }
 
-        PlayField[tilePosY, tilePosX].AssignTileToCell(newTile);
+    /// <summary>
+    /// This method destroys all tile game objects currently existing in the scene.
+    /// </summary>
+    public void DestroyAllTiles()
+    {
+        foreach (Transform tile in TilesGameObject.transform)
+        {
+            Destroy(tile.gameObject);
+        }
     }
 
     /// <summary>
@@ -203,7 +262,7 @@ public class GameManager : MonoBehaviour
         // next round begins -> new tile appears on the play field
         AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         MoveMadeThisRound = false;
-        CreateTile();
+        CreateRandomTile();
 
         // check if any shift is possible
         if (!AnyShiftPossible())

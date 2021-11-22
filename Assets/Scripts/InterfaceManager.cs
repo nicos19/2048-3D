@@ -28,10 +28,15 @@ public class InterfaceManager : MonoBehaviour
         ScoreValue.text = score.ToString();
         BestScoreValue.text = bestScore.ToString();
 
-        if (BestScoreValue.color == Color.white && score == bestScore && score != 0)
+        if (score == bestScore && score != 0)
         {
-            // just reached new high score
-            BestScoreValue.color = Color.yellow;
+            // current score is also the high score
+            ScoreValue.color = Color.yellow;
+        } 
+        else
+        {
+            // current score is lower than the high score
+            ScoreValue.color = Color.white;
         }
     }
 
@@ -65,7 +70,7 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Restart()
     {
-
+        GAME_MANAGER.StartNewGame();
     }
 
     /// <summary>

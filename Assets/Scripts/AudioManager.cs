@@ -7,7 +7,6 @@ public class AudioManager : MonoBehaviour
 {
     public GameObject Music;
     public GameObject ShiftSoundEffect;
-    public GameObject MergeSoundEffect;
     public GameObject MusicButton;
     public GameObject SoundEffectsButton;
     public Sprite SoundOn;
@@ -21,14 +20,12 @@ public class AudioManager : MonoBehaviour
 
     private AudioSource _music;
     private AudioSource _shiftSoundEffect;
-    private AudioSource _mergeSoundEffect;
 
     // Start is called before the first frame update
     void Start()
     {
         _music = Music.GetComponent<AudioSource>();
         _shiftSoundEffect = ShiftSoundEffect.GetComponent<AudioSource>();
-        _mergeSoundEffect = MergeSoundEffect.GetComponent<AudioSource>();
     }
 
     /// <summary>
@@ -46,29 +43,22 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// This method plays a sound effect for merging tiles.
-    /// </summary>
-    public void PlayMergeSoundEffect()
-    {
-        _mergeSoundEffect.Play();
-    }
-
-    /// <summary>
     /// This method mutes or unmutes all sound effects.
     /// </summary>
     public void ToggleSoundEffects()
     {
         _shiftSoundEffect.mute = !_shiftSoundEffect.mute;
-        _mergeSoundEffect.mute = !_mergeSoundEffect.mute;
 
         // change button symbol
         if (SoundEffectsButton.GetComponent<Image>().sprite == SoundOn)
         {
-            SoundEffectsButton.GetComponent<Image>().sprite = SoundOff;
+            SetButtonSprite(SoundEffectsButton, SoundOff);
+            AudioSettings.SaveAudioSetting("soundEffects", 0);
         }
         else
         {
-            SoundEffectsButton.GetComponent<Image>().sprite = SoundOn;
+            SetButtonSprite(SoundEffectsButton, SoundOn);
+            AudioSettings.SaveAudioSetting("soundEffects", 1);
         }
     }
 
@@ -82,12 +72,24 @@ public class AudioManager : MonoBehaviour
         // change button symbol
         if (MusicButton.GetComponent<Image>().sprite == SoundOn)
         {
-            MusicButton.GetComponent<Image>().sprite = SoundOff;
+            SetButtonSprite(MusicButton, SoundOff);
+            AudioSettings.SaveAudioSetting("music", 0);
         }
         else
         {
-            MusicButton.GetComponent<Image>().sprite = SoundOn;
+            SetButtonSprite(MusicButton, SoundOn);
+            AudioSettings.SaveAudioSetting("music", 1);
         }
+    }
+
+    /// <summary>
+    /// This method sets the sprite representing <c>ButtonGameObject</c> in the game.
+    /// </summary>
+    /// <param name="ButtonGameObject"></param>
+    /// <param name="sprite"></param>
+    public void SetButtonSprite(GameObject ButtonGameObject, Sprite sprite)
+    {
+        ButtonGameObject.GetComponent<Image>().sprite = sprite;
     }
 
 }

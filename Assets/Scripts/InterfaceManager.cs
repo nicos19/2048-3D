@@ -32,6 +32,8 @@ public class InterfaceManager : MonoBehaviour
         {
             // current score is also the high score
             ScoreValue.color = Color.yellow;
+            // remember high score
+            PlayerPrefs.SetInt("bestScore", bestScore);
         } 
         else
         {
@@ -62,6 +64,7 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Quit()
     {
+        GAME_MANAGER.Save();
         Application.Quit();
     }
 

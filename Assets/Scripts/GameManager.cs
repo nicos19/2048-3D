@@ -50,6 +50,12 @@ public class GameManager : MonoBehaviour
         AUDIO_MANAGER = gameObject.GetComponent<AudioManager>();
         SAVEGAME_MANAGER = gameObject.GetComponent<SavegameManager>();
 
+        // load best score
+        if (PlayerPrefs.HasKey("bestScore"))
+        {
+            _bestScore = PlayerPrefs.GetInt("bestScore");
+        }
+
         // load game if savegame exists
         if (SAVEGAME_MANAGER.SavegameExists())
         {
@@ -81,7 +87,6 @@ public class GameManager : MonoBehaviour
         GamePaused = false;
         AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         _score = 0;
-        INTERFACE_MANAGER.UpdateScoreboard(_score, _bestScore);
         MoveMadeThisRound = false;
         CountUnfinishedTileMoves = 0;
 
@@ -116,6 +121,7 @@ public class GameManager : MonoBehaviour
     public void StartNewGame()
     {
         ResetGame();
+        INTERFACE_MANAGER.UpdateScoreboard(_score, _bestScore);
 
         // create two initial tiles
         CreateRandomTile();
@@ -134,12 +140,22 @@ public class GameManager : MonoBehaviour
         ResetGame();
 
         _score = savegame.Score;
+        INTERFACE_MANAGER.UpdateScoreboard(_score, _bestScore);
+
         foreach (SavegameTile savegameTile in savegame.SavegameTiles)
         {
             CreateTile(savegameTile.CellX, savegameTile.CellY, savegameTile.TileValue);
         }
 
         ReadyForUserInput = true;
+    }
+
+    /// <summary>
+    /// This method saves the current game state.
+    /// </summary>
+    public void Save()
+    {
+        SAVEGAME_MANAGER.CreateSavegameFile(_score, TilesGameObject);
     }
 
     /// <summary>

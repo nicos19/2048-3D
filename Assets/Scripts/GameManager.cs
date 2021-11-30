@@ -269,7 +269,7 @@ public class GameManager : MonoBehaviour
                 {
                     // player has a 2048 tile -> game is won
                     GamePaused = true;
-                    INTERFACE_MANAGER.ShowWinMessage();
+                    INTERFACE_MANAGER.ShowWinScreen();
                     return;
                 }
             }
@@ -285,7 +285,7 @@ public class GameManager : MonoBehaviour
         {
             // player cannot do any shift action -> game over
             GamePaused = true;
-            INTERFACE_MANAGER.ShowGameOverMessage();
+            INTERFACE_MANAGER.ShowGameOverScreen(_score, _bestScore);
         }
 
         ReadyForUserInput = true;

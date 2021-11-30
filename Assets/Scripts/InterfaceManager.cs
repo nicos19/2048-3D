@@ -9,6 +9,10 @@ public class InterfaceManager : MonoBehaviour
     public TextMesh BestScoreValue;
     public GameObject SettingsMenu;
     public GameObject SettingsButton;
+    public GameObject GameOverScreen;
+    public GameObject GameOverScreenFinalScore;
+
+    private bool _gameOverScreenDrawn;
 
     private GameManager GAME_MANAGER;
 
@@ -43,20 +47,48 @@ public class InterfaceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// This method causes the game to show a "You win!" message.
+    /// This method causes the game to show the screen that tells the player the he/she has just won the game.
     /// </summary>
-    public void ShowWinMessage()
+    public void ShowWinScreen()
     {
         // TODO
     }
 
     /// <summary>
-    /// This method causes the game to show a "Game over!" message.
+    /// This method draws a "Game over!" message including the <c>finalScore</c> of this try.
     /// </summary>
-    public void ShowGameOverMessage()
+    public void ShowGameOverScreen(int finalScore, int bestScore)
     {
-        // TODO
-        Debug.Log("GAME OVER");
+        GameOverScreenFinalScore.GetComponent<Text>().text = finalScore.ToString();
+        if (finalScore == bestScore)
+        {
+            // this try occured in new high score
+            GameOverScreenFinalScore.GetComponent<Text>().color = Color.yellow;
+        }
+        else
+        {
+            // no new high score
+            GameOverScreenFinalScore.GetComponent<Text>().color = Color.white;
+        }
+        GameOverScreen.SetActive(true);
+        _gameOverScreenDrawn = true;
+    }
+
+    /// <summary>
+    /// This method does the same as <c>ShowGameOverScreen(int finalScore)</c> but is only used 
+    /// when the game over screen of this try had already been drawn previously.
+    /// </summary>
+    public void ShowGameOverScreen()
+    {
+        GameOverScreen.SetActive(true);
+    }
+
+    /// <summary>
+    /// This method removes the game over screen from the display.
+    /// </summary>
+    public void RemoveGameOverScreen()
+    {
+        GameOverScreen.SetActive(false);
     }
 
     /// <summary>
@@ -73,6 +105,8 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Restart()
     {
+        RemoveGameOverScreen();
+        _gameOverScreenDrawn = false;
         GAME_MANAGER.StartNewGame();
     }
 
@@ -86,10 +120,16 @@ public class InterfaceManager : MonoBehaviour
             // close settings menu if it is open
             SettingsMenu.SetActive(false);
             GAME_MANAGER.GamePaused = false;
+            if (_gameOverScreenDrawn)
+            {
+                GAME_MANAGER.GamePaused = true;  // game is over
+                ShowGameOverScreen();
+            }
         } 
         else
         {
             // open settings menu if it is closed
+            RemoveGameOverScreen();
             SettingsMenu.SetActive(true);
             GAME_MANAGER.GamePaused = true;
         }

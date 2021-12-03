@@ -7,13 +7,16 @@ public class Savegame
 {
     public int Score { get; private set; }
     public List<SavegameTile> SavegameTiles { get; private set; }
+    public bool GameWon { get; private set; }
+    public string ActiveEndingScreen { get; private set; }
+
 
     /// <summary>
     /// A <c>Savegame</c> instance represents the game state to be saved.
     /// </summary>
     /// <param name="score"></param>
     /// <param name="tilesGameObject"></param>
-    public Savegame(int score, GameObject tilesGameObject)
+    public Savegame(int score, GameObject tilesGameObject, bool gameWon, string activeEndingScreen)
     {
         Score = score;
         SavegameTiles = new List<SavegameTile>();
@@ -25,6 +28,9 @@ public class Savegame
         {
             SavegameTiles.Add(new SavegameTile(tile.CurrentCell.X, tile.CurrentCell.Y, tile.TileValue));
         }
+
+        GameWon = gameWon;
+        ActiveEndingScreen = activeEndingScreen;
     }
 
     /// <summary>

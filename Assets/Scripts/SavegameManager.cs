@@ -9,9 +9,9 @@ public class SavegameManager : MonoBehaviour
     /// <summary>
     /// This method creates a savegame on disk that can be deserialized when savegame is loaded.
     /// </summary>
-    public void CreateSavegameFile(int score, GameObject tilesGameObject)
+    public void CreateSavegameFile(int score, GameObject tilesGameObject, bool gameWon, string activeEndingScreen)
     {
-        Savegame savegame = CreateSavegame(score, tilesGameObject);
+        Savegame savegame = CreateSavegame(score, tilesGameObject, gameWon, activeEndingScreen);
 
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Create(Application.persistentDataPath + "/savegame.save");
@@ -23,9 +23,9 @@ public class SavegameManager : MonoBehaviour
     /// This method creates a savegame object representing the game state to be saved.
     /// </summary>
     /// <returns></returns>
-    public Savegame CreateSavegame(int score, GameObject tilesGameObject)
+    public Savegame CreateSavegame(int score, GameObject tilesGameObject, bool gameWon, string activeEndingScreen)
     {
-        return new Savegame(score, tilesGameObject);
+        return new Savegame(score, tilesGameObject, gameWon, activeEndingScreen);
     }
 
     /// <summary>

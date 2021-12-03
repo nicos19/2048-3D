@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
     private int _score;
     private int _bestScore;
     private bool _waitForUnfinishedTileMoves;
+    private bool _gameWon;
     private InterfaceManager INTERFACE_MANAGER;
     private AudioManager AUDIO_MANAGER;
     private SavegameManager SAVEGAME_MANAGER;
@@ -85,6 +86,7 @@ public class GameManager : MonoBehaviour
     public void ResetGame()
     {
         GamePaused = false;
+        _gameWon = false;
         AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         _score = 0;
         MoveMadeThisRound = false;
@@ -147,6 +149,20 @@ public class GameManager : MonoBehaviour
             CreateTile(savegameTile.CellX, savegameTile.CellY, savegameTile.TileValue);
         }
 
+        // check if game ended with game over or win
+        _gameWon = savegame.GameWon;
+        if (savegame.ActiveEndingScreen == "win")
+        {
+            GamePaused = true;
+            INTERFACE_MANAGER.ShowWinScreen(_score, _bestScore);
+            return;
+        }
+        else if (savegame.ActiveEndingScreen == "gameover")
+        {
+            GamePaused = true;
+            INTERFACE_MANAGER.ShowGameOverScreen(_score, _bestScore);
+        }
+
         ReadyForUserInput = true;
     }
 
@@ -155,7 +171,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void Save()
     {
-        SAVEGAME_MANAGER.CreateSavegameFile(_score, TilesGameObject);
+        SAVEGAME_MANAGER.CreateSavegameFile(_score, TilesGameObject, _gameWon, INTERFACE_MANAGER.ActiveEndingScreen());
     }
 
     /// <summary>
@@ -237,7 +253,7 @@ public class GameManager : MonoBehaviour
     }
     
     /// <summary>
-    /// This method initializes the next round of the game. 
+    /// This method does the transition from current round to the next round of the game.
     /// It checks for win/game over and creates one new random tile if the game continues.
     /// </summary>
     public void NextTurn()
@@ -267,14 +283,27 @@ public class GameManager : MonoBehaviour
                 PlayField[y, x].ResetHasMergedTile();
                 if (PlayField[y, x].Tile.Count != 0 && PlayField[y, x].GetTileValue() == 2048)
                 {
-                    // player has a 2048 tile -> game is won
-                    GamePaused = true;
-                    INTERFACE_MANAGER.ShowWinScreen();
-                    return;
+                    if (!_gameWon)
+                    {
+                        // player has just merged a 2048 tile -> game is won
+                        GamePaused = true;
+                        _gameWon = true;
+                        INTERFACE_MANAGER.ShowWinScreen(_score, _bestScore);
+                        return;
+                    }
                 }
             }
         }
 
+        InitializeNextRound();
+    }
+
+    /// <summary>
+    /// When a new round is started, this method executes the round's initialization. 
+    /// Used by <c>NextTurn()</c> or <c>InterfaceManager.Continue()</c>.
+    /// </summary>
+    public void InitializeNextRound()
+    {
         // next round begins -> new tile appears on the play field
         AUDIO_MANAGER.ShiftSoundPlayedThisRound = false;
         MoveMadeThisRound = false;

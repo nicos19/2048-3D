@@ -11,8 +11,11 @@ public class InterfaceManager : MonoBehaviour
     public GameObject SettingsButton;
     public GameObject GameOverScreen;
     public GameObject GameOverScreenFinalScore;
+    public GameObject WinScreen;
+    public GameObject WinScreenFinalScore;
 
     private bool _gameOverScreenDrawn;
+    private bool _winScreenDrawn;
 
     private GameManager GAME_MANAGER;
 
@@ -49,9 +52,28 @@ public class InterfaceManager : MonoBehaviour
     /// <summary>
     /// This method causes the game to show the screen that tells the player the he/she has just won the game.
     /// </summary>
+    public void ShowWinScreen(int finalScore, int bestScore)
+    {
+        DrawFinalScore(WinScreenFinalScore, finalScore, bestScore);
+        WinScreen.SetActive(true);
+        _winScreenDrawn = true;
+    }
+
+    /// <summary>
+    /// This method does the same as <c>ShowWinScreen(int finalScore, int bestScore)</c> but is only used 
+    /// when the win screen of this try had already been drawn previously.
+    /// </summary>
     public void ShowWinScreen()
     {
-        // TODO
+        WinScreen.SetActive(true);
+    }
+
+    /// <summary>
+    /// This method removes the win screen from the display.
+    /// </summary>
+    public void RemoveWinScreen()
+    {
+        WinScreen.SetActive(false);
     }
 
     /// <summary>
@@ -59,23 +81,13 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void ShowGameOverScreen(int finalScore, int bestScore)
     {
-        GameOverScreenFinalScore.GetComponent<Text>().text = finalScore.ToString();
-        if (finalScore == bestScore)
-        {
-            // this try occured in new high score
-            GameOverScreenFinalScore.GetComponent<Text>().color = Color.yellow;
-        }
-        else
-        {
-            // no new high score
-            GameOverScreenFinalScore.GetComponent<Text>().color = Color.white;
-        }
+        DrawFinalScore(GameOverScreenFinalScore, finalScore, bestScore);
         GameOverScreen.SetActive(true);
         _gameOverScreenDrawn = true;
     }
 
     /// <summary>
-    /// This method does the same as <c>ShowGameOverScreen(int finalScore)</c> but is only used 
+    /// This method does the same as <c>ShowGameOverScreen(int finalScore, int bestScore)</c> but is only used 
     /// when the game over screen of this try had already been drawn previously.
     /// </summary>
     public void ShowGameOverScreen()
@@ -89,6 +101,49 @@ public class InterfaceManager : MonoBehaviour
     public void RemoveGameOverScreen()
     {
         GameOverScreen.SetActive(false);
+    }
+
+    /// <summary>
+    /// This method assigns the <c>finalScore</c> to the <c>finalScoreObject</c> and determines
+    /// the correct color for the displayed score.
+    /// </summary>
+    /// <param name="finalScoreObject"></param>
+    /// <param name="finalScore"></param>
+    /// <param name="bestScore"></param>
+    public void DrawFinalScore(GameObject finalScoreObject, int finalScore, int bestScore)
+    {
+        finalScoreObject.GetComponent<Text>().text = finalScore.ToString();
+        if (finalScore == bestScore)
+        {
+            // this try occured in new high score
+            finalScoreObject.GetComponent<Text>().color = Color.yellow;
+        }
+        else
+        {
+            // no new high score
+            finalScoreObject.GetComponent<Text>().color = Color.white;
+        }
+    }
+
+    /// <returns>
+    /// Returns <c>"gameover"</c> if game over screen is shown, <c>"win"</c> if win screen is shown and <c>""</c> otherwise.
+    /// </returns>
+    public string ActiveEndingScreen()
+    {
+        if (_gameOverScreenDrawn)
+        {
+            // game over screen is shown
+            return "gameover";
+        }
+        else if (_winScreenDrawn)
+        {
+            // win screen is shown
+            return "win";
+        }
+        else
+        {
+            return "";
+        }
     }
 
     /// <summary>
@@ -106,8 +161,21 @@ public class InterfaceManager : MonoBehaviour
     public void Restart()
     {
         RemoveGameOverScreen();
+        RemoveWinScreen();
         _gameOverScreenDrawn = false;
+        _winScreenDrawn = false;
         GAME_MANAGER.StartNewGame();
+    }
+
+    /// <summary>
+    /// This method continues a game that is already won.
+    /// </summary>
+    public void Continue()
+    {
+        RemoveWinScreen();
+        _winScreenDrawn = false;
+        GAME_MANAGER.GamePaused = false;
+        GAME_MANAGER.InitializeNextRound();
     }
 
     /// <summary>
@@ -125,11 +193,17 @@ public class InterfaceManager : MonoBehaviour
                 GAME_MANAGER.GamePaused = true;  // game is over
                 ShowGameOverScreen();
             }
+            else if (_winScreenDrawn)
+            {
+                GAME_MANAGER.GamePaused = true;  // game is won
+                ShowWinScreen();
+            }
         } 
         else
         {
             // open settings menu if it is closed
             RemoveGameOverScreen();
+            RemoveWinScreen();
             SettingsMenu.SetActive(true);
             GAME_MANAGER.GamePaused = true;
         }

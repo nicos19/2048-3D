@@ -18,11 +18,13 @@ public class InterfaceManager : MonoBehaviour
     private bool _winScreenDrawn;
 
     private GameManager GAME_MANAGER;
+    private AudioManager AUDIO_MANAGER;
 
     // Start is called before the first frame update
     void Start()
     {
         GAME_MANAGER = gameObject.GetComponent<GameManager>();
+        AUDIO_MANAGER = gameObject.GetComponent<AudioManager>();
     }
 
     /// <summary>
@@ -151,6 +153,12 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Quit()
     {
+        if (!ButtonClickable())
+        {
+            return;
+        }
+
+        AUDIO_MANAGER.PlayButtonSoundEffect();
         GAME_MANAGER.Save();
         Application.Quit();
     }
@@ -160,11 +168,18 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Restart()
     {
+        if (!ButtonClickable())
+        {
+            return;
+        }
+
         RemoveGameOverScreen();
         RemoveWinScreen();
         _gameOverScreenDrawn = false;
         _winScreenDrawn = false;
         GAME_MANAGER.StartNewGame();
+
+        AUDIO_MANAGER.PlayButtonSoundEffect();
     }
 
     /// <summary>
@@ -176,6 +191,8 @@ public class InterfaceManager : MonoBehaviour
         _winScreenDrawn = false;
         GAME_MANAGER.GamePaused = false;
         GAME_MANAGER.InitializeNextRound();
+
+        AUDIO_MANAGER.PlayButtonSoundEffect();
     }
 
     /// <summary>
@@ -183,6 +200,11 @@ public class InterfaceManager : MonoBehaviour
     /// </summary>
     public void Settings()
     {
+        if (!ButtonClickable())
+        {
+            return;
+        }
+
         if (SettingsMenu.activeSelf)
         {
             // close settings menu if it is open
@@ -207,6 +229,17 @@ public class InterfaceManager : MonoBehaviour
             SettingsMenu.SetActive(true);
             GAME_MANAGER.GamePaused = true;
         }
+
+        AUDIO_MANAGER.PlayButtonSoundEffect();
+    }
+
+    /// <returns>
+    /// Returns <c>true</c> if player is allowed to use buttons, <c>false</c> otherwise.
+    /// </returns>
+    public bool ButtonClickable()
+    {
+        // quit-, qestart- and settings-buttons shall only be clickable if there are no moving tiles
+        return GAME_MANAGER.ReadyForUserInput || _winScreenDrawn;
     }
 
 }

@@ -6,6 +6,7 @@ public class AudioSettings : MonoBehaviour
 {
     public GameObject MusicGameObject;
     public GameObject ShiftSoundEffectGameObject;
+    public GameObject ButtonSoundEffectGameObject;
 
     private void Start()
     {
@@ -34,12 +35,14 @@ public class AudioSettings : MonoBehaviour
             {
                 // sound effects shall be deactivated
                 ShiftSoundEffectGameObject.GetComponent<AudioSource>().mute = true;
+                ButtonSoundEffectGameObject.GetComponent<AudioSource>().mute = true;
                 AUDIO_MANAGER.SetButtonSprite(AUDIO_MANAGER.SoundEffectsButton, AUDIO_MANAGER.SoundOff);
             }
             else
             {
                 // sound effects shall be activated
                 ShiftSoundEffectGameObject.GetComponent<AudioSource>().mute = false;
+                ButtonSoundEffectGameObject.GetComponent<AudioSource>().mute = false;
             }
         }
     }

@@ -7,6 +7,7 @@ public class AudioManager : MonoBehaviour
 {
     public GameObject Music;
     public GameObject ShiftSoundEffect;
+    public GameObject ButtonSoundEffect;
     public GameObject MusicButton;
     public GameObject SoundEffectsButton;
     public Sprite SoundOn;
@@ -20,12 +21,14 @@ public class AudioManager : MonoBehaviour
 
     private AudioSource _music;
     private AudioSource _shiftSoundEffect;
+    private AudioSource _buttonSoundEffect;
 
     // Start is called before the first frame update
     void Start()
     {
         _music = Music.GetComponent<AudioSource>();
         _shiftSoundEffect = ShiftSoundEffect.GetComponent<AudioSource>();
+        _buttonSoundEffect = ButtonSoundEffect.GetComponent<AudioSource>();
     }
 
     /// <summary>
@@ -43,11 +46,20 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
+    /// This method plays a sound effect belonging to button clicking.
+    /// </summary>
+    public void PlayButtonSoundEffect()
+    {
+        _buttonSoundEffect.Play();
+    }
+
+    /// <summary>
     /// This method mutes or unmutes all sound effects.
     /// </summary>
     public void ToggleSoundEffects()
     {
         _shiftSoundEffect.mute = !_shiftSoundEffect.mute;
+        _buttonSoundEffect.mute = !_buttonSoundEffect.mute;
 
         // change button symbol
         if (SoundEffectsButton.GetComponent<Image>().sprite == SoundOn)
@@ -60,6 +72,8 @@ public class AudioManager : MonoBehaviour
             SetButtonSprite(SoundEffectsButton, SoundOn);
             AudioSettings.SaveAudioSetting("soundEffects", 1);
         }
+
+        PlayButtonSoundEffect();
     }
 
     /// <summary>
@@ -80,6 +94,8 @@ public class AudioManager : MonoBehaviour
             SetButtonSprite(MusicButton, SoundOn);
             AudioSettings.SaveAudioSetting("music", 1);
         }
+
+        PlayButtonSoundEffect();
     }
 
     /// <summary>

@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    // ------------------------------
+    // ONLY RELEVANT FOR TILES > 2048
+    // ------------------------------
+    public GameObject Value4Digits;
+    public GameObject Value5Digits;
+    public GameObject BaseValue;
+    public GameObject ExponentValue;
+    // ------------------------------
+
+
     public AudioManager AUDIO_MANAGER;  // is set by GameManager when tile is created
 
     /// <value>
@@ -50,11 +60,12 @@ public class Tile : MonoBehaviour
     }
 
     /// <summary>
-    /// This method updates the material of the tile game object, so that it fits <c>_tileValue</c>.
+    /// This method updates the material of the tile game object, so that it fits <c>_tileValue</c> 
+    /// and adjust height/y-pos of tile game object.
     /// </summary>
     public void UpdateMaterial()
     {
-        gameObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>($"Materials/TileMaterial{TileValue}");
+        gameObject.GetComponent<MeshRenderer>().material = GetTileMaterial();
         // also update height and y-position of tile game object -> higher "TileValue" causes larger tile size
         float newHeight = (float)(0.1 + Mathf.Log(TileValue, 2) * 0.05);
         if (Mathf.Log(TileValue, 2) > 20)  // -> if TileValue > 2^20
@@ -69,6 +80,49 @@ public class Tile : MonoBehaviour
         float newPositionY = (float)(transform.position.y + (newHeight - transform.localScale.y) * 0.5);
         transform.localScale = new Vector3(transform.localScale.x, newHeight, transform.localScale.z);
         transform.position = new Vector3(transform.position.x, newPositionY, transform.position.z);
+    }
+
+    /// <summary>
+    /// This method returns the proper material for the tile.
+    /// </summary>
+    /// <returns></returns>
+    public Material GetTileMaterial()
+    {
+        Material material;
+
+        if (TileValue <= 2048)
+        {
+            // material including tile value texture available
+            return Resources.Load<Material>($"Materials/TileMaterial{TileValue}");
+        }
+        else if (TileValue <= 65536)
+        {
+            // material available
+            material = Resources.Load<Material>($"Materials/TileMaterial{TileValue}");
+            // write "TileValue" on tile
+            if (TileValue <= 9999)
+            {
+                gameObject.GetComponent<Tile>().Value4Digits.SetActive(true);
+                gameObject.GetComponent<Tile>().Value4Digits.GetComponent<TextMesh>().text = TileValue.ToString();
+            }
+            else
+            {
+                gameObject.GetComponent<Tile>().Value4Digits.SetActive(false);
+                gameObject.GetComponent<Tile>().Value5Digits.SetActive(true);
+                gameObject.GetComponent<Tile>().Value5Digits.GetComponent<TextMesh>().text = TileValue.ToString();
+            }
+            return material;
+        }
+        else
+        {
+            // no new material available -> stay with current material ("TileMaterial65536")
+            material = gameObject.GetComponent<MeshRenderer>().material;
+            // write "TileValue" on Tile
+            gameObject.GetComponent<Tile>().BaseValue.SetActive(true);
+            gameObject.GetComponent<Tile>().ExponentValue.SetActive(true);
+            gameObject.GetComponent<Tile>().ExponentValue.GetComponent<TextMesh>().text = Mathf.Log(TileValue, 2).ToString();
+            return material;
+        }
     }
 
     /// <summary>
@@ -130,7 +184,6 @@ public class Tile : MonoBehaviour
     public void PromoteTile()
     {
         AssignTileValue(TileValue * 2);
-        UpdateMaterial();
     }
 
     /// <param name="direction"></param>

@@ -189,7 +189,6 @@ public class GameManager : MonoBehaviour
         GameObject newTile = Instantiate(TilePrefab, newTileWorldPosition, TilePrefab.transform.rotation);
         newTile.transform.SetParent(TilesGameObject.transform, true);
         newTile.GetComponent<Tile>().AssignTileValue(tileValue);
-        newTile.GetComponent<Tile>().UpdateMaterial();
         newTile.GetComponent<Tile>().CurrentCell = PlayField[tilePosY, tilePosX];
         newTile.GetComponent<Tile>().TargetCell = PlayField[tilePosY, tilePosX];
         newTile.GetComponent<Tile>().AUDIO_MANAGER = AUDIO_MANAGER;

@@ -68,13 +68,10 @@ public class Tile : MonoBehaviour
         gameObject.GetComponent<MeshRenderer>().material = GetTileMaterial();
         // also update height and y-position of tile game object -> higher "TileValue" causes larger tile size
         float newHeight = (float)(0.1 + Mathf.Log(TileValue, 2) * 0.05);
-        if (Mathf.Log(TileValue, 2) > 20)  // -> if TileValue > 2^20
+        if (newHeight > 0.75f)
         {
-            newHeight = (float)(0.1 + 20 * 0.05 + (Mathf.Log(TileValue, 2) - 20) * 0.01);
-        }
-        else if (Mathf.Log(TileValue, 2) > 30)  // -> if TileValue > 2^30
-        {
-            newHeight = (float)(0.1 + 20 * 0.05 + 10 * 0.01);  // -> max height is 1.2
+            // max height is 0.75
+            newHeight = 0.75f;
         }
 
         float newPositionY = (float)(transform.position.y + (newHeight - transform.localScale.y) * 0.5);
@@ -118,6 +115,7 @@ public class Tile : MonoBehaviour
             // no new material available -> stay with current material ("TileMaterial65536")
             material = gameObject.GetComponent<MeshRenderer>().material;
             // write "TileValue" on Tile
+            gameObject.GetComponent<Tile>().Value5Digits.SetActive(false);
             gameObject.GetComponent<Tile>().BaseValue.SetActive(true);
             gameObject.GetComponent<Tile>().ExponentValue.SetActive(true);
             gameObject.GetComponent<Tile>().ExponentValue.GetComponent<TextMesh>().text = Mathf.Log(TileValue, 2).ToString();

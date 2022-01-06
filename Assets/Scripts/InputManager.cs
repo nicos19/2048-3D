@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
+    public GameObject TitleScreen;
+
     private GameManager GAME_MANAGER;
     private MovementManager MOVEMENT_MANAGER;
 
@@ -17,9 +19,9 @@ public class InputManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (GAME_MANAGER.GamePaused || !GAME_MANAGER.ReadyForUserInput)
+        if (TitleScreen.activeSelf || GAME_MANAGER.GamePaused || !GAME_MANAGER.ReadyForUserInput)
         {
-            // game is paused or not ready for next user input -> no action possible
+            // game is in title screen or paused or not ready for next user input -> no action possible
             return;
         }
 

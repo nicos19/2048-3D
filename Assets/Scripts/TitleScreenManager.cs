@@ -9,11 +9,11 @@ public class TitleScreenManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.anyKeyDown)
+        if (Input.GetKeyDown("return"))
         {
             if (TitleScreen.activeSelf)
             {
-                // deactivate title screen when any key or mouse button is pressed
+                // deactivate title screen when ENTER key is pressed
                 TitleScreen.SetActive(false);
             }
         }

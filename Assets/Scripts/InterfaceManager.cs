@@ -159,8 +159,8 @@ public class InterfaceManager : MonoBehaviour
         }
 
         AUDIO_MANAGER.PlayButtonSoundEffect();
-        GAME_MANAGER.Save();
         Application.Quit();
+        // game is saved before quitting by OnApplicationQuit() in GameManager
     }
 
     /// <summary>

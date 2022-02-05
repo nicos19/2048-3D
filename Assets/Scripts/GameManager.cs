@@ -80,6 +80,12 @@ public class GameManager : MonoBehaviour
         } 
     }
 
+    // Before the application quits, the game is saved.
+    private void OnApplicationQuit()
+    {
+        Save();
+    }
+
     /// <summary>
     /// This method resets the game to initial state without any tiles.
     /// </summary>

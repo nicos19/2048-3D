@@ -14,7 +14,7 @@ public class SavegameManager : MonoBehaviour
         Savegame savegame = CreateSavegame(score, tilesGameObject, gameWon, activeEndingScreen);
 
         BinaryFormatter bf = new BinaryFormatter();
-        FileStream file = File.Create(Application.persistentDataPath + "/savegame.save");
+        FileStream file = File.Create(Application.persistentDataPath + "/2048-3D_savegame.save");
         bf.Serialize(file, savegame);
         file.Close();
     }
@@ -35,7 +35,7 @@ public class SavegameManager : MonoBehaviour
     public Savegame LoadSavegame()
     {
         BinaryFormatter bf = new BinaryFormatter();
-        FileStream file = File.Open(Application.persistentDataPath + "/savegame.save", FileMode.Open);
+        FileStream file = File.Open(Application.persistentDataPath + "/2048-3D_savegame.save", FileMode.Open);
         Savegame savegame = (Savegame)bf.Deserialize(file);
         file.Close();
         return savegame;
@@ -44,7 +44,7 @@ public class SavegameManager : MonoBehaviour
     /// <returns>Returns <c>true</c> if a savegame file exists, <c>false</c> otherwise.</returns>
     public bool SavegameExists()
     {
-        return File.Exists(Application.persistentDataPath + "/savegame.save");
+        return File.Exists(Application.persistentDataPath + "/2048-3D_savegame.save");
     }
 
 }
